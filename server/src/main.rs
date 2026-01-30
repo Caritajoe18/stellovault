@@ -14,6 +14,9 @@ use std::sync::Arc;
 mod app_state;
 mod collateral;
 mod escrow;
+mod escrow_service;
+mod event_listener;
+mod governance_service;
 mod handlers;
 mod loan;
 mod loan_service;
@@ -109,11 +112,19 @@ async fn main() {
         db_pool.clone(),
     ));
 
+    // Initialize governance service
+    let governance_service = Arc::new(governance_service::GovernanceService::new(
+        db_pool.clone(),
+        contract_id.clone(), // governance contract ID (same as main contract for now)
+        network_passphrase.clone(),
+    ));
+
     // Create shared app state
     let app_state = AppState::new(
         escrow_service.clone(),
         collateral_service.clone(),
         oracle_service.clone(),
+        governance_service.clone(),
         ws_state.clone(),
         config.webhook_secret.clone(),
     );
@@ -162,6 +173,7 @@ async fn main() {
         .merge(routes::escrow_routes())
         .merge(routes::collateral_routes())
         .merge(routes::oracle_routes())
+        .merge(routes::governance_routes())
         .merge(routes::analytics_routes())
         .merge(routes::risk_routes())
         .merge(routes::oracle_routes())

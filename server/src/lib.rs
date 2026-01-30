@@ -5,6 +5,9 @@
 pub mod app_state;
 pub mod collateral;
 pub mod escrow;
+pub mod escrow_service;
+pub mod event_listener;
+pub mod governance_service;
 pub mod handlers;
 pub mod loan;
 pub mod loan_service;
