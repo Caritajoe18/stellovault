@@ -20,25 +20,23 @@ model User {
 }
 
 model Wallet {
-  id             String   @id @default(uuid())
+  id             String       @id @default(uuid())
   userId         String
-  stellarAddress String
-  isPrimary      Boolean  @default(false)
-  label          String?  // "Ledger", "Freighter", etc.
-
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status WalletStatus @default(ACTIVE)
-
+  stellarAddress String       @unique // Renamed to stellarAddress to be specific
+  isPrimary      Boolean      @default(false)
+  label          String?      // "Ledger", "Freighter", etc.
+  status         WalletStatus @default(ACTIVE)
+  
+  // Relations
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   sessions       Session[]
   challenges     Challenge[]
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
-  @@unique([stellarAddress])
   @@index([userId])
 }
-
 
 
 model Loan {
@@ -63,19 +61,20 @@ model Investment {
 }
 
 model Challenge {
-  id        String   @id @default(uuid())
-  userId    String
-  walletId  String
-  nonce     String
-  expiresAt DateTime
-  consumed  Boolean  @default(false)
-  purpose   ChallengePurpose @default(LOGIN)
+  id         String           @id @default(uuid())
+  userId     String
+  walletId   String?          // Made optional: Login might not have a wallet yet
+  walletAddress String?       // From the first dev's version
+  nonce      String           @unique
+  purpose    ChallengePurpose @default(LOGIN)
+  expiresAt  DateTime
+  consumed   Boolean          @default(false)
+  
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet     Wallet?          @relation(fields: [walletId], references: [id], onDelete: Cascade)
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  wallet    Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
 
   @@index([userId])
   @@index([walletId])

@@ -7,6 +7,9 @@ CREATE TYPE "Role" AS ENUM ('USER', 'MERCHANT', 'ADMIN');
 -- CreateEnum
 CREATE TYPE "LoanStatus" AS ENUM ('PENDING', 'ACTIVE', 'REPAID', 'DEFAULTED');
 
+-- CreateEnum
+CREATE TYPE "ChallengePurpose" AS ENUM ('LOGIN', 'LINK_WALLET');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
@@ -61,8 +64,10 @@ CREATE TABLE "Investment" (
 CREATE TABLE "Challenge" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
-    "walletId" TEXT NOT NULL,
+    "walletId" TEXT,
+    "walletAddress" TEXT,
     "nonce" TEXT NOT NULL,
+    "purpose" "ChallengePurpose" NOT NULL DEFAULT 'LOGIN',
     "expiresAt" TIMESTAMP(3) NOT NULL,
     "consumed" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -88,16 +93,22 @@ CREATE TABLE "Session" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Wallet_stellarAddress_key" ON "Wallet"("stellarAddress");
+
+-- CreateIndex
 CREATE INDEX "Wallet_userId_idx" ON "Wallet"("userId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Wallet_stellarAddress_key" ON "Wallet"("stellarAddress");
+CREATE UNIQUE INDEX "Challenge_nonce_key" ON "Challenge"("nonce");
 
 -- CreateIndex
 CREATE INDEX "Challenge_userId_idx" ON "Challenge"("userId");
 
 -- CreateIndex
 CREATE INDEX "Challenge_walletId_idx" ON "Challenge"("walletId");
+
+-- CreateIndex
+CREATE INDEX "Challenge_nonce_idx" ON "Challenge"("nonce");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Session_jti_key" ON "Session"("jti");
