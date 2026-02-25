@@ -70,7 +70,34 @@ export class AuthService {
             include: { user: true },
         });
 
+<<<<<<< HEAD
         const challenge = await prisma.challenge.create({
+=======
+    private async lockUserRow(tx: DbClient, userId: string): Promise<void> {
+        const rows = await tx.$queryRaw`SELECT id FROM "User" WHERE id = ${userId} FOR UPDATE`;
+        if (!Array.isArray(rows) || rows.length === 0) {
+            throw new NotFoundError("User not found");
+        }
+    }
+
+    async generateChallenge(
+        address: string,
+        purpose: ChallengePurpose = CHALLENGE_PURPOSE.LOGIN,
+        userId?: string
+    ): Promise<{ nonce: string; expiresAt: Date; message: string }> {
+        const normalizedAddress = this.normalizeAddress(address);
+        this.assertValidStellarAddress(normalizedAddress);
+
+        if (purpose === CHALLENGE_PURPOSE.LINK_WALLET && !userId) {
+            throw new ValidationError("userId is required for wallet linking challenges");
+        }
+
+        const nonce = randomBytes(24).toString("hex");
+        const expiresAt = new Date(Date.now() + CHALLENGE_TTL_MS);
+        const db = prisma;
+
+        await db.walletChallenge.create({
+>>>>>>> upstream/master
             data: {
                 userId: wallet.userId,
                 walletId: wallet.id,
@@ -165,6 +192,7 @@ export class AuthService {
         };
     }
 
+<<<<<<< HEAD
     async refreshTokens(refreshToken: string) {
         let payload: TokenPayload;
         try {
@@ -249,6 +277,13 @@ export class AuthService {
         await prisma.session.update({
             where: { jti },
             data: { revoked: true, revokedAt: new Date() },
+=======
+    async getUserWallets(userId: string) {
+        const db = prisma;
+        return db.wallet.findMany({
+            where: { userId },
+            orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }],
+>>>>>>> upstream/master
         });
     }
 
@@ -418,8 +453,16 @@ export class AuthService {
     }
 
     async updateWalletLabel(userId: string, walletId: string, label?: string) {
+<<<<<<< HEAD
         const wallet = await prisma.wallet.findFirst({ where: { id: walletId, userId } });
         if (!wallet) throw new NotFoundError("Wallet not found");
+=======
+        const db = prisma;
+        const wallet = await db.wallet.findFirst({ where: { id: walletId, userId } });
+        if (!wallet) {
+            throw new NotFoundError("Wallet not found");
+        }
+>>>>>>> upstream/master
 
         return prisma.wallet.update({
             where: { id: walletId },
